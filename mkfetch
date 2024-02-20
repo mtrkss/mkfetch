@@ -1,0 +1,90 @@
+include /etc/os-release
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
+
+# this is a pretty cool system info fetch made in makefile.
+# i've also challenged myself to never use "echo" here, the workarounds are SCARY.
+# random script kiddie: https://github.com/mtrkss
+# license: https://unlicense.org
+# tested os: Void Linux
+
+mkfetchWhat ?= ghost gdist gkern gprogs gshell gcpu gmem guptime
+
+# colors: host, host separator, separator, names, text
+mkfetchCol1 ?= cmagenta
+mkfetchCol2 ?= cgreen
+mkfetchCol3 ?= ccyan
+mkfetchCol4 ?= cblue
+mkfetchCol5 ?= creset
+
+mkfetchSepr ?= >
+mkfetchHSepr ?= @
+
+# colors (taken from ufetch)
+cred = $$(tput setaf 1 2>/dev/null)
+cgreen = $$(tput setaf 2 2>/dev/null)
+cyellow = $$(tput setaf 3 2>/dev/null)
+cblue = $$(tput setaf 4 2>/dev/null)
+cmagenta = $$(tput setaf 5 2>/dev/null)
+ccyan = $$(tput setaf 6 2>/dev/null)
+creset = $$(tput sgr0 2>/dev/null)
+
+# files that will get used
+null = /dev/null
+
+# i need to move this into gmem somehow
+memAv = $$(($$(awk '/mAv/{print$$2}' /proc/meminfo)/1024))
+memTo = $$(($$(awk '/mTo/{print$$2}' /proc/meminfo)/1024))
+
+fetch: $(mkfetchWhat)
+
+dry1 = $(${mkfetchCol4})
+dry2 = $(${mkfetchCol3})$(mkfetchSepr)$(${mkfetchCol5})
+
+ghost:
+	@printf "$(${mkfetchCol1})\
+	\t$$(whoami)$(${mkfetchCol2})$(mkfetchHSepr)\
+	$(${mkfetchCol1})$$(cat /etc/hostname 2>$(null)|hostname)\
+	$(creset)\n"
+
+gdist:
+	@printf "$(dry1)dist$(dry2) \
+	$$(printf $(PRETTY_NAME)|sed 's/"//g')\
+	$(creset)\n"
+
+gmem:
+	@printf "$(dry1)mem$(dry2) \
+	$$(($(memTo)-$(memAv)))/$(memTo) MB\
+	$(creset)\n"
+
+guptime:
+	@printf "$(dry1)up$(dry2) \
+	$$(uptime|awk -F, '{sub(".*up ",x,$$1);printf$$1}'|sed -e 's/^[ \t]*//')\
+	$(creset)\n"
+
+gprogs:
+	@printf "$(dry1)execs$(dry2) \
+	$$(ls -1 /usr/bin|wc -l)\
+	$(creset)\n"
+
+gshell:
+	@printf "$(dry1)mksh$(dry2) \
+	$(SHELL)\
+	$(creset)\n"
+
+cpunames = awk -F: '/model name/ {gsub(/^[ \t]/,"",$$2); print $$2}' /proc/cpuinfo
+gcpu:
+	@printf "$(dry1)cpu$(dry2) \
+	$$(${cpunames}|uniq) ($$(${cpunames}|wc -l) threads)\
+	$(creset)\n"
+
+gkern:
+	@printf "$(dry1)krnl$(dry2) \
+	$$(uname -sr)\
+	$(creset)\n"
