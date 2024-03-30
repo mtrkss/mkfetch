@@ -38,19 +38,15 @@ creset = $$(tput sgr0 2>/dev/null)
 # files that will get used
 null = /dev/null
 
-# i need to move this into gmem somehow
-memAv = $$(($$(awk '/mAv/{print$$2}' /proc/meminfo)/1024))
-memTo = $$(($$(awk '/mTo/{print$$2}' /proc/meminfo)/1024))
-
 fetch: $(mkfetchWhat)
 
 dry1 = $(${mkfetchCol4})
 dry2 = $(${mkfetchCol3})$(mkfetchSepr)$(${mkfetchCol5})
 
 ghost:
-	@printf "$(${mkfetchCol1})\
-	\t$$(whoami)$(${mkfetchCol2})$(mkfetchHSepr)\
-	$(${mkfetchCol1})$$(cat /etc/hostname 2>$(null)|hostname)\
+	@printf "$(${mkfetchCol1})\t\
+	$$(whoami)$(${mkfetchCol2})$(mkfetchHSepr)\
+	$(${mkfetchCol1})$$(cat /etc/hostname 2>$(null)||hostname)\
 	$(creset)\n"
 
 gdist:
@@ -60,7 +56,7 @@ gdist:
 
 gmem:
 	@printf "$(dry1)mem$(dry2) \
-	$$(($(memTo)-$(memAv)))/$(memTo) MB\
+	$$(free -m|awk 'NR==2{print $$3"/"$$2}') MB\
 	$(creset)\n"
 
 guptime:
