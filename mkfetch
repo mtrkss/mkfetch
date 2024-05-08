@@ -77,7 +77,7 @@ gshell:
 cpunames = awk -F: '/model name/ {gsub(/^[ \t]/,"",$$2); print $$2}' /proc/cpuinfo
 gcpu:
 	@printf "$(dry1)cpu$(dry2) \
-	$$(${cpunames}|uniq) ($$(${cpunames}|wc -l) threads)\
+	$$(${cpunames}|uniq) ($$(nproc))\
 	$(creset)\n"
 
 gkern:
